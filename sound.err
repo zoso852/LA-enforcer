@@ -1,0 +1,2 @@
+sound.c(38): Warning! W131: No prototype found for function 'opl_stop_voice'
+sound.c(55): Warning! W131: No prototype found for function 'opl_write'
