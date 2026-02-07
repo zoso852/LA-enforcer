@@ -15,6 +15,7 @@
 #include "effects.h"
 #include "decor.h"
 #include "bullets.h"
+#include "beeper.h"
 
 
 int max_rel_x=30;
@@ -97,7 +98,7 @@ FILE *logf;
 	
     	if (test_collision(&player.box, &enemy[i].box)) {
 	
-        	play_collision();
+        	play_sound_id(SND_COLLISION);
         	
         	if (enemy[i].flags & ENEMY_DEADLY) kill_player();
 	
@@ -211,7 +212,7 @@ for (j=0;j<MAX_ENEMY;j++){
 		
 		//if (test_collision(&enemy[j].box, &enemy[i].box)) {
 
-    		play_collision();
+    		play_sound_id(SND_COLLISION);
     		
     		dx  = (jx + jw) - ix;
     		dx2 = (ix + iw) - jx;
@@ -340,6 +341,7 @@ void test_player_shoot(){
 		}
 	if (touche) {
 		spawn_effect(enemy[best_id].box.x, enemy[best_id].box.y+(enemy[best_id].box.h<<4), EFFECT_IMPACT);
+		play_sound_id(SND_HIT);
 		damage_enemy(GUN_DAMAGE,best_id);
 		enemy[best_id].rvy+=55;
 		}

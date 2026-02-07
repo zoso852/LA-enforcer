@@ -1,0 +1,2 @@
+enforcer.c(97): Warning! W131: No prototype found for function 'init_sound'
+enforcer.c(177): Warning! W131: No prototype found for function 'sound_shutdown'

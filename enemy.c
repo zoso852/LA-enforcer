@@ -11,7 +11,7 @@
 #include "control.h"
 #include "effects.h"
 #include "background.h"
-#include "sound.h"
+#include "beeper.h"
 #include "bullets.h"
 
 unsigned char far viper[670] = {
@@ -228,7 +228,7 @@ void damage_enemy (int damage, int enemy_number){
 
 void destroy_enemy(int enemy_number) {
 
-play_car_explosion();
+play_sound_id(SND_EXPLOSION);
 spawn_enemy(enemy[enemy_number].box.x,enemy[enemy_number].box.y,WRECK, WRECK_AI,enemy[enemy_number].vy,enemy[enemy_number].vx);
 //spawn_wreck(enemy[enemy_number].box.x,enemy[enemy_number].box.y,enemy[enemy_number].vy);
 enemy[enemy_number].flags = 0;

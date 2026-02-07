@@ -25,8 +25,8 @@ int nb_decor = 0;
 
 void init_decor()
 {
-	gen_decor(1,30,PALM_TREE);
-	gen_decor(215,50,PALM_TREE);
+	/*gen_decor(1,30,PALM_TREE);
+	gen_decor(215,50,PALM_TREE); */
 }
 
 

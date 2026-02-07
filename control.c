@@ -17,6 +17,7 @@
 #include "background.h"
 #include "sound.h"
 #include "collision.h"
+#include "beeper.h"
 
 #define BIOS_TICK  (*(volatile unsigned long far*)0x0040006CL)
 
@@ -232,13 +233,17 @@ fclose(logf); */
 }
 
 void player_fire(){
+
+
+
+
 	//put_sprite(player.box.x, player.box.y, gunfire);
 	
 	// Vérifie si cooldown terminé
     if (BIOS_TICK >= next_fire_tick) {
 		
         player.gun_timer = 3;
-		play_big_gun_shot();
+		play_sound_id(SND_SHOOT);
         // 2 tirs par seconde → 9 ticks BIOS
         next_fire_tick = BIOS_TICK + 4;
         test_player_shoot();
@@ -258,7 +263,7 @@ void kill_player(){
 	//scroll_speed=0;
 	player.rvy = player.vy_engine;
 	player.vy_engine = 0;
-	play_car_explosion();
+	play_sound_id(SND_EXPLOSION);
 	spawn_effect(player.box.x-13, player.box.y-(8<<4), EFFECT_EXPLOSION);
 	player.box.x = -340;
 	player.box.y = 3600; //pour éviter les tests de collision

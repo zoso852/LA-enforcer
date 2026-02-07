@@ -4,7 +4,7 @@
 
 #include "entity.h"
 
-#define MAX_DECOR 8
+#define MAX_DECOR 3
 
 #define DECOR_ACTIVE 0x01  // 0000 0001
 #define DECOR_SOLID  0x02  // 0000 0010

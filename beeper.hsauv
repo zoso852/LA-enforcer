@@ -1,0 +1,17 @@
+#ifndef BEEPER_H
+#define BEEPER_H
+
+void speaker_on(unsigned int freq);
+
+
+void speaker_off(void);
+
+
+void delay_ms(unsigned int ms);
+
+
+void shoot_beeper(void);
+
+
+
+#endif

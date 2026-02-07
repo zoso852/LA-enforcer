@@ -94,6 +94,8 @@ int main() {
     init_player();
     init_keyboard();
     init_effects();
+    init_sound();
+    
     //init_bullets();
     
     init_decor();
@@ -172,6 +174,7 @@ int main() {
     getch(); /* Attendre une touche avant de quitter */
     restore_keyboard();
     opl_stop();
+    sound_shutdown();
     free_buffer();
     return 0;
 }
