@@ -87,8 +87,6 @@ int dx, dx2, overlapX, dy, dy2, overlapY;
 int push, cx, cy;
 
 
-FILE *logf;
-
 	if (collision_counter >0 ) collision_counter--;
 	
 	if (!player.alive) return;
@@ -182,8 +180,6 @@ int i=0,j, rel_x, rel_y;
 int dx, dx2, overlapX, dy, dy2, overlapY, ix, iy, jx, jy, iw, ih, jw, jh;
 
 int push, cx, cy;
-
-FILE *logf;
 
 for (j=0;j<MAX_ENEMY;j++){
 	if (!(enemy[j].flags & ENEMY_ACTIVE) || enemy[j].box.y<-560) continue;

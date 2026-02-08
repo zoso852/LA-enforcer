@@ -234,6 +234,8 @@ spawn_enemy(enemy[enemy_number].box.x,enemy[enemy_number].box.y,WRECK, WRECK_AI,
 enemy[enemy_number].flags = 0;
 spawn_effect(enemy[enemy_number].box.x-13,enemy[enemy_number].box.y-(8<<4),EFFECT_EXPLOSION);
 
+if (enemy[enemy_number].type = 2) reduce_fuel(100);
+
 nb_enemy--;
 
 

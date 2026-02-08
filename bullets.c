@@ -38,7 +38,6 @@ void init_bullets(void)
 
 void shoot_bullet (int enemy_number)
 {
-	FILE *logf;
 	
 	int ax,bx,ay,by,dx,dy,absx,absy, d, i;
 	
@@ -55,11 +54,7 @@ void shoot_bullet (int enemy_number)
 	absy = abs(dy);
 	
 	d = absx>absy ? absx : absy;
-	
-	logf = fopen("log.txt", "a");
-fprintf(logf, "pl x = %d, pl y = %d e x = %d, e y = %d, dx = %d, dy = %d\n", ax, ay, bx, by, dx, dy);
-fclose(logf);
-	
+		
 	for (i=0; i<MAX_BULLET;i++)
 		{
 		if (!(bullet[i].flags & BULLET_ACTIVE)) break; 

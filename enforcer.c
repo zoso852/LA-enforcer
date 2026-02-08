@@ -20,8 +20,6 @@
 #include "level.h"
 #include "bullets.h"
 
-int mescouilles=0;
-
 unsigned char car[883]={
 115,3,
 21,50,
@@ -88,13 +86,13 @@ int main() {
     
     srand(time(NULL));
        
-    opl_init();
     init_display();
     init_background();
     init_player();
     init_keyboard();
     init_effects();
     init_sound();
+    init_hud();
     
     //init_bullets();
     
@@ -107,14 +105,11 @@ int main() {
     
     while(1) {
     
-    if ( player.vy == 173 && mescouilles == 0) { 
-    	//spawn_enemy(130,60 <<4,VIPER,STANDART_AI,160,0);
-    	//spawn_enemy(150, 90<<4, CIVILIAN, CIVILIAN_AI, 60,0);
-    	
-    	mescouilles=1;
-    	}
-    	if (timer_ticks != last_tick) {
-        last_tick = timer_ticks;
+   
+    	/*if (timer_ticks != last_tick) {
+        last_tick = timer_ticks;*/
+        while (timer_ticks > last_tick) {
+    last_tick = timer_ticks;;
     	
     update_input();          // lire touches
     
@@ -145,8 +140,6 @@ int main() {
     
     }
     
-    update_sounds();
-    
 	update_background();
     
     update_decor();
@@ -166,14 +159,12 @@ int main() {
     
     
 	flip();
-	//delay(3);
 	
 	}
 
     
     getch(); /* Attendre une touche avant de quitter */
     restore_keyboard();
-    opl_stop();
     sound_shutdown();
     free_buffer();
     return 0;

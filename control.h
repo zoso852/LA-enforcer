@@ -30,5 +30,6 @@ void update_input();
 void player_fire();
 void player_gun_update();
 void kill_player();
+void reduce_fuel(int amount);
 
 #endif

@@ -21,7 +21,7 @@
 
 #define BIOS_TICK  (*(volatile unsigned long far*)0x0040006CL)
 
-unsigned long next_fire_tick = 0; 
+unsigned long next_fire_tick = 0;
 
 unsigned char cuda[470]={
 15,36,2,9,30,11,12,15,23,11,30,34,1,218,254,1,10,30,11,2,242,13,2,238,15,4,242,19,2,241,21,1,30,22,3,242,25,9,30,34,2,242,254,0,11,30,11,2,242,13,9,30,22,3,242,25,1,238,26,8,30,34,1,182,35,1,242,254,0,10,30,10,3,242,13,8,30,21,2,242,23,1,238,24,1,8,25,1,242,26,8,30,34,1,182,35,1,242,254,0,10,30,10,3,242,13,2,30,15,3,7,18,3,30,21,2,242,23,1,238,24,1,8,25,1,242,26,8,30,34,1,242,35,1,238,254,0,10,30,10,2,242,12,1,241,13,1,30,14,3,27,17,1,7,18,3,30,21,2,242,23,1,238,24,1,8,25,1,242,26,8,30,34,2,242,254,0,6,78,6,9,23,15,1,8,16,1,27,17,1,7,18,3,78,21,2,238,23,2,8,25,1,238,26,8,78,34,2,238,254,0,6,30,6,1,22,7,8,25,15,1,8,16,1,27,17,1,7,18,3,30,21,3,238,24,1,8,25,1,242,26,8,30,34,2,242,254,0,6,78,6,9,22,15,1,8,16,1,27,17,1,7,18,3,78,21,2,242,23,2,8,25,1,242,26,8,78,34,1,242,35,1,238,254,0,10,30,10,1,242,11,1,238,12,1,242,13,1,30,14,3,27,17,1,7,18,3,30,21,2,242,23,1,238,24,1,8,25,1,242,26,8,30,34,1,242,35,1,238,254,0,10,30,10,2,242,12,1,238,13,2,30,15,3,7,18,3,30,21,2,242,23,1,238,24,1,8,25,1,242,26,8,30,34,1,242,35,1,238,254,0,10,30,10,2,242,12,1,238,13,8,30,21,2,242,23,2,8,25,1,242,26,8,30,34,1,182,35,1,238,254,0,11,30,11,2,242,13,9,30,22,4,242,26,8,30,34,1,182,35,1,238,254,1,10,30,11,1,238,12,2,242,14,5,241,19,2,242,21,1,30,22,2,218,24,1,242,25,9,30,34,1,242,35,1,238,254,2,9,27,11,14,7,25,9,27,34,1,242,255};
@@ -55,6 +55,7 @@ playertype player;
 
 int v_slow=0;
 
+int fuel_level = 1600;
 	
 
 void init_player(){
@@ -129,9 +130,7 @@ void update_input() {
 
     if (key_down[0x4D])
         player.vx =  MAX_VX;
-               
-   	player.box.x+=player.vx+player.rvx;
-   	
+                        	
    	// Gestion friction
         
         if (player.rvx!=0) {
@@ -167,6 +166,8 @@ fclose(logf); */
 
             player.vy_engine = acc_table[player.speed_index];
             
+            fuel_level-=2;
+            update_fuel_gauge(fuel_level>>5);
 			}
 
     // Frein
@@ -175,6 +176,7 @@ fclose(logf); */
 			if(player.speed_index < 8) player.speed_index = 0;
 
     		player.vy_engine = acc_table[player.speed_index];
+    		
     		
     //On allume les feux arrières, ça c'est important
     		cuda[63]=41;
@@ -210,10 +212,16 @@ fclose(logf); */
      
      scroll_speed = player.vy;
      
-     scroll_y+=(scroll_speed>>4);
-     /*logf = fopen("log.txt", "a");
-fprintf(logf, "player vy = %d , ", player.vy);
+     scroll_y+=((player.vy_engine-v_slow)>>4);
+     
+     player.box.x+=player.vx+player.rvx;
+   	
+   	
+   	/*logf = fopen("log.txt", "a");
+fprintf(logf, "player speed = %d \n", playerspeed);
 fclose(logf); */
+   	
+   	draw_speed_cursor(scroll_speed/3);
         
      if (player.box.x>320) player.box.x-=320; // Utile tant qu'on wrappe autour de l'écran
      if (player.box.x<0) player.box.x+=320;
@@ -269,4 +277,10 @@ void kill_player(){
 	player.box.y = 3600; //pour éviter les tests de collision
 	//spawn_wreck(player.box.x, player.box.y, player.vy);
 	//put_sprite (player.box.x,player.box.y,wreck);
+}
+
+void reduce_fuel(int amount)
+{
+	fuel_level-=amount;
+	update_fuel_gauge(fuel_level);
 }

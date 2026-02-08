@@ -28,11 +28,6 @@ static void generate_line();
 void gen_background()
 {
 	int i;
-	FILE *logf;
-	
-	/*logf = fopen("log.txt", "a");
-	fprintf(logf, "left_road from gen_background = %d ,", left_road);
-	fclose(logf); */
 	
 	for (i=0;i<200;i++)
 	{
@@ -42,13 +37,7 @@ void gen_background()
 }
 
 static void generate_line()
-{
-    FILE *logf;
-    
-    /*logf = fopen("log.txt", "a");
-	fprintf(logf, "counter_road_change = %d \n", counter_road_change);
-	fclose(logf);  */
-    
+{    
     switch (road_change)
     {
     
@@ -173,10 +162,6 @@ void update_background()
 	 FILE *logf;
 	line_height_fp = 1 << 4;
     y_offset_fp += scroll_speed;
-
-/*logf = fopen("log.txt", "a");
-fprintf(logf, "scrollspeed = %d , y_offset_fp = %d , line_height_fp = %d\n", scroll_speed, y_offset_fp, line_height_fp);
-fclose(logf); */
 
     while (y_offset_fp >= line_height_fp)
     {

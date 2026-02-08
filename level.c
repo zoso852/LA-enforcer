@@ -60,9 +60,7 @@ void create_road()
 
 	interval += (scroll_speed>>4);
 	
-	/*logf = fopen("log.txt", "a");
-	fprintf(logf, "interval = %d scroll speed = %d\n", interval, scroll_speed);
-	fclose(logf);  */
+
 
 	if (interval > 200) 
 		{

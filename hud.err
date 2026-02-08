@@ -1,0 +1,6 @@
+hud.c(31): Error! E1011: Symbol 'sprite' has not been declared
+hud.c(31): Error! E1045: Subscript on non-array
+hud.c(43): Error! E1011: Symbol 'buffer' has not been declared
+hud.c(43): Warning! W102: Type mismatch (warning)
+hud.c(43): Note! I2003: source conversion type is 'unsigned int'
+hud.c(43): Note! I2004: target conversion type is 'unsigned char __far *'
