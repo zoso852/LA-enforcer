@@ -8,6 +8,7 @@
 #include <dos.h>
 #include <stdint.h>
 
+#include "enforcer.h"
 #include "display.h"
 #include "control.h"
 #include "entity.h"
@@ -20,6 +21,7 @@
 #include "beeper.h"
 
 #define BIOS_TICK  (*(volatile unsigned long far*)0x0040006CL)
+
 
 unsigned long next_fire_tick = 0;
 
@@ -47,25 +49,42 @@ unsigned char* gunfire[3] = { gunfire1, gunfire2, gunfire3 };
 
 unsigned char key_down[128];   // touche pressée
 unsigned char key_up[128];     // touche relâchée
-    
-
 
 playertype player;
 
 
 int v_slow=0;
 
-int fuel_level = 1600;
+int fuel_max =1600; //1600
+int fuel_level=0;
+
+int drift_counter = 0;
+
+unsigned long game_over_tick = 0;  // moment où le joueur meurt
+int game_over_delay = 48;          // nombre de ticks BIOS (~1/18.2 s par tick)
+int game_over_active = 0;          // flag indiquant que l'écran de game over est affiché
+
+extern char display_game_over=0;
 	
+static void player_undrift();
+
+static void player_drift();
+
+static void game_over_tick_on();
+
+static void game_over();
 
 void init_player(){
-	
+
+	player.flags = 0;
 	player.box.x=150;
 	
 	player.box.y=157<<4;
 	
 	player.vx=0;
 	player.vy=0;
+	player.rvy=0;
+	player.rvx=0;
 	
 	player.speed_index=0;
 	
@@ -73,7 +92,7 @@ void init_player(){
 	
 	player.box.w=player.sprite[0];
 	player.box.h=player.sprite[1];
-	player.alive=1;
+	player.flags |= PLAYER_ALIVE;
 }
 
 /* ---------------- Handler clavier ---------------- */
@@ -110,8 +129,10 @@ void update_input() {
 
 	short i;
 	
-	int v_slow_target = 0;
-	
+	int offroad=0;
+	int left_road_limit = (L_road[(top_line+(player.box.y>>4))%200])-3 ;
+	int right_road_limit = (R_road[(top_line+(player.box.y>>4))%200])-13 ;
+		
 	FILE *logf;
 	
 	unsigned short acc_table[50] = /*{0,1,2,3,4,5,7,9,11,13,15,17,20,23,26,29,32,35,39,43,47,51,55,59,64,69,74,79,84,89,95,101,107,113,119,126,132,138,143,148,152,156,160,163,166,168,170,171,172,173}; */
@@ -120,16 +141,24 @@ void update_input() {
     12, 13, 15, 18, 20, 22, 25, 27, 30, 33,
     36, 39, 42, 45, 49, 53, 57, 61, 65, 68,
     73, 78, 82, 87, 91, 97, 101, 106, 110, 114,
-    117, 120, 123, 125, 128, 129, 131, 131, 132, 133
+    117, 120, 123, 125, 128, 129, 130, 131, 132, 133
 };
-	if (key_up[0x4B]) player.vx = 0;
-	if (key_up[0x4D]) player.vx = 0;
+	/*if (key_up[0x4B]) player.vx = 0;
+	if (key_up[0x4D]) player.vx = 0; */
+	
+	player.vx = 0;
     
-    if (key_down[0x4B])
+    if (key_down[0x4B] && player.vy>0 && player.box.x>0)
+    	{
         player.vx = -MAX_VX;
+		if (player.flags & PLAYER_DRIFTING) player.vx = -MAX_VX - 2;
+		}
 
-    if (key_down[0x4D])
+    if (key_down[0x4D] && player.vy>0 && player.box.x<235)
+    	{
         player.vx =  MAX_VX;
+        if (player.flags & PLAYER_DRIFTING) player.vx = MAX_VX + 2;
+        }
                         	
    	// Gestion friction
         
@@ -142,36 +171,68 @@ void update_input() {
         	if (player.rvx>0) player.rvx-=1;
 		}
 
-		if (player.rvy!=0) {
-        	/* logf = fopen("log.txt", "a");
-fprintf(logf, "player rvy = %d \n ", player.rvy);
-fclose(logf); */
-        	if (player.rvy>3||player.rvy<3) {
+		if (player.rvy!=0)
+			{
+        	if (player.rvy<-3)
+        		{
+    			player.rvy -=  -((abs(player.rvy) + 3) >> 2); // ~25% friction
+    			}
+        	else if (player.rvy<0) player.rvy+=1;
+        		else if (player.rvy>0) player.rvy-=1;
+        	}
+		
+		/* if (player.rvy!=0)
+			{
+        	if (player.rvy>3||player.rvy<3)
+        		{
         		int sign = (player.rvy > 0) ? 1 : -1;
     			player.rvy -= sign * ((abs(player.rvy) + 3) >> 2); // ~25% friction
     			}
-        	else { if (player.rvy<0) player.rvy+=1;
+        	else 
+        		{ if (player.rvy<0) player.rvy+=1;  //TODO virer ces conditions si je suis sûr de garder -1 en friction
         		else {
         				if (player.rvy>0) player.rvy-=1;
-        			}
+        			 }
         		}
-		}
+		} */
 		
 	
-
+	
     // Accélération
-    if (key_down[0x48] && player.alive) {
+        
+    if (key_down[0x48])
+    	{
+    	if (player.flags & PLAYER_ALIVE && !(player.flags & PLAYER_OUT_OF_FUEL) && player.speed_index<49)
+    		{
+    		player.speed_index++;
+    		if (player.vy < 40)
+    			{
+    			create_tire_mark(0x00);
+    			if (player.vy == 0) play_sound_id(SND_SQUEAL);
+    			}
+            }
+        }
+	else if (player.speed_index > 0)
+		{
+		player.speed_index--;
+		
+		}
+	if (player.flags & PLAYER_ALIVE) player.vy_engine = acc_table[player.speed_index];
+	/*
+	// Accélération
+    if (player.speed_index > 0) player.speed_index--;
+    
+    if (key_down[0x48] && player.flags & PLAYER_ALIVE && !(player.flags & PLAYER_OUT_OF_FUEL)) {
     
     		if (player.speed_index<49) player.speed_index++;
 
             player.vy_engine = acc_table[player.speed_index];
             
-            fuel_level-=2;
-            update_fuel_gauge(fuel_level>>5);
 			}
+	*/
 
     // Frein
-    if (key_down[0x50] && player.alive) {
+    if (key_down[0x50] && player.flags & PLAYER_ALIVE) {
         	if(player.speed_index > 7) player.speed_index -= 2;
 			if(player.speed_index < 8) player.speed_index = 0;
 
@@ -185,59 +246,166 @@ fclose(logf); */
     		cuda[396]=41;
 
         }
-    if (key_up[0x50])  {
+    if (key_up[0x50])  { //on les éteint
     		cuda[63]=182;
     		cuda[94]=182;
     		cuda[418]=182;
     		cuda[396]=182;
     }
+    
+    // Tirer
+     
+     if (key_down[0x1D]) {
+     	player_fire();
+     }
+     
+	// Drift, avec Alt 0x38
+	
+	if (key_down[0x38] && !(player.flags & PLAYER_DRIFTING) && player.vy>70) {
+		player_drift();
+		
+	}
+	
+	if (key_up[0x38]) {
+    	player_undrift();
+	}
+	
+	
+	
+	     
+     // Barre espace pour debug
+     if (key_down[0x39]) 
+     {
+     	add_fuel(250);
+     	//player.rvy+=50;
+     	/*logf = fopen("log.txt", "a");
+fprintf(logf, "scroll_y = %d \n", scroll_y);
+fclose(logf); */
+     } 
         
    // En dehors de la route? 
    
+   
+   if (player.box.x<left_road_limit || player.box.x>right_road_limit) 
+   	{
+   	offroad = 1;
+   	if (player.box.x<left_road_limit-5 || player.box.x>right_road_limit+5) create_tire_mark(0x06);
+   	}
+   
+   /*
+   //      OLD OFFRAOD
    	if (player.box.x<(L_road[(top_line+(player.box.y>>4))%200])-3 || player.box.x>(R_road[(top_line+(player.box.y>>4))%200])-13)
    		{
-   		//play_collision();
    		v_slow_target = player.vy_engine>>1;
+   		//create_tire_mark(0x06);
    		}
-     //if (player.box.x<left_road || player.box.x>right_road) v_slow_target = 150;
-     	else 
+       	else 
      		{
      		v_slow_target = 0;
      		while (v_slow!=0) v_slow -= 2;
      		}
      	
      if (v_slow<v_slow_target) v_slow+=2;
-        
+     */
+     // Gestion drift
+     
+     if (player.flags & PLAYER_DRIFTING && drift_counter<12 &&  player.vy>70)
+     	{
+     	player.vy_engine -=20;
+     	drift_counter++;
+     	create_tire_mark(0x00);
+     	}
+     
+     
      player.vy = player.vy_engine + player.rvy - v_slow;
      
+     if (offroad)
+		{
+    		// forte friction
+    		player.vy -= player.vy >> 2;   // -25%
+		
+    		// vitesse max réduite
+    		if (player.vy > 60)
+        		player.vy = 60;
+		
+    		// JAMAIS de marche arrière
+    		if (player.vy < 0)
+        		player.vy = 0;
+		}
+         
      scroll_speed = player.vy;
      
-     scroll_y+=((player.vy_engine-v_slow)>>4);
+     scroll_y+=(player.vy>>4);
      
      player.box.x+=player.vx+player.rvx;
+     
+     //Gestion fuel
+     
+     if (player.vy_engine>0)
+     	{
+     	fuel_level-=2;
+        update_fuel_gauge(fuel_level>>5);
+        }
+        else player.vy_engine=0;
+     
+     if (fuel_level <= 0)
+     	{
+     	if (!(player.flags & PLAYER_OUT_OF_FUEL))
+     		{
+     		player.rvy+=player.vy_engine;
+     		player.vy_engine = 0;
+     		player.speed_index = 0;
+     		player.flags |= PLAYER_OUT_OF_FUEL;
+     		}
+     	else if (player.vy <=0) game_over();
+     	}
    	
    	
-   	/*logf = fopen("log.txt", "a");
-fprintf(logf, "player speed = %d \n", playerspeed);
-fclose(logf); */
    	
    	draw_speed_cursor(scroll_speed/3);
         
      if (player.box.x>320) player.box.x-=320; // Utile tant qu'on wrappe autour de l'écran
      if (player.box.x<0) player.box.x+=320;
      
-     // Tirer
-     
-     if (key_down[0x1D]) {
-     	player_fire();
-     }
-     	
-     if (key_down[0x39]) 
-     {
-     	play_test();
-     }
+    //Gestion du game over
     
+	if (game_over_active) {
+	if ((int)(BIOS_TICK - game_over_tick) >= game_over_delay) game_over();
+    }
+
+          	
+    
+    memset(key_up, 0, sizeof(key_up));
 	
+}
+
+void game_over()
+{
+	// On peut afficher le Game Over et permettre le restart
+        display_game_over = 1;  // ta fonction pour l'affichage
+
+        if (key_down[0x13]) {  // touche R
+        	display_game_over = 0;
+            init_game();
+            game_over_active = 0;  // on reset le flag
+            }
+        if (key_down[0x10] || key_down[0x1E])
+        	{
+        	quit();
+        	}
+}
+
+void player_drift()
+{
+spawn_effect(player.box.x, player.box.y+450, EFFECT_SMOKE);
+	play_sound_id(SND_SQUEAL);
+	
+    player.flags |= PLAYER_DRIFTING;
+}
+void player_undrift()
+{
+player.flags &= ~PLAYER_DRIFTING;
+drift_counter = 0;
 }
 
 void player_fire(){
@@ -267,20 +435,47 @@ void player_gun_update(){
 }
 
 void kill_player(){
-	player.alive=0;
-	//scroll_speed=0;
+	//player.flags &= ~PLAYER_ALIVE;
+	player.flags = 0;  //MET TOUS LES FLAGS A 0!!!
+	
 	player.rvy = player.vy_engine;
 	player.vy_engine = 0;
 	play_sound_id(SND_EXPLOSION);
+	spawn_enemy(player.box.x,player.box.y,WRECK, WRECK_AI,player.vy, player.vx);
 	spawn_effect(player.box.x-13, player.box.y-(8<<4), EFFECT_EXPLOSION);
 	player.box.x = -340;
 	player.box.y = 3600; //pour éviter les tests de collision
-	//spawn_wreck(player.box.x, player.box.y, player.vy);
-	//put_sprite (player.box.x,player.box.y,wreck);
+	
+	game_over_tick_on();
+	
+}
+
+void game_over_tick_on()
+{
+	// Démarrage du timer Game Over
+    game_over_tick = BIOS_TICK;
+    game_over_active = 1;
+}
+
+void init_fuel()
+{
+update_fuel_gauge(0);
+fuel_level=fuel_max;
+player.flags &= ~PLAYER_OUT_OF_FUEL;
+update_fuel_gauge(fuel_level>>5);
 }
 
 void reduce_fuel(int amount)
 {
 	fuel_level-=amount;
-	update_fuel_gauge(fuel_level);
+	if (fuel_level<0) fuel_level = 0;
+	update_fuel_gauge(fuel_level>>5);
+}
+
+void add_fuel(int amount)
+{
+	fuel_level+=amount;
+	if (fuel_level>fuel_max) fuel_level = fuel_max;
+	player.flags &= ~PLAYER_OUT_OF_FUEL;
+	update_fuel_gauge(fuel_level>>5);
 }

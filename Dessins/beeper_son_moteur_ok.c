@@ -6,6 +6,9 @@
 
 volatile int spk_ticks = 0;
 volatile const unsigned short *snd_ptr = 0;
+volatile int engine_freq = 0;              // fréquence du moteur en Hz
+volatile unsigned short current_freq = 0;    // fréquence actuelle jouée
+
 
 static const unsigned short snd_shoot[] = {80,150,200,180,150,110,85,60,0};
 static const unsigned short snd_hit[] = {80,150,800,400,0};
@@ -13,7 +16,6 @@ static const unsigned short snd_collision[] = {60,100,80,55,0};
 static const unsigned short snd_explosion[] = {120, 340, 200, 90, 400, 180, 60, 300,220, 100, 360, 140, 80, 260, 0};
 static const unsigned short snd_bonus[] = {80,130,100,160,140,200,180,280,240,370,320,550,0};
 static const unsigned short snd_squeal[] = {650,700,700,700,700,700,710,720,0};
-static const unsigned short snd_malus[] = {550,320,370,240,280,180,200,140,160,100,80,0};
 
 void interrupt (*old_timer)(void);
 
@@ -39,9 +41,6 @@ void play_sound_id(sound_id_t id)
         case SND_SQUEAL:
         	play_sound(snd_squeal);
         	break;
-        case SND_MALUS:
-        	play_sound(snd_malus);
-        	break;
     }
 }
 
@@ -53,24 +52,39 @@ void play_sound(const unsigned short *snd)
 
 void __interrupt timer_isr(void)
 {
+    unsigned short f = 0;
+
+    // priorité aux sons ponctuels
     if (snd_ptr)
     {
-        unsigned short f = *snd_ptr++;
-
+        f = *snd_ptr++;
         if (f == 0)
         {
             snd_ptr = 0;
-            outp(0x61, inp(0x61) & ~3);
+            f = engine_freq; // reprend moteur si son ponctuel terminé
         }
-        else
+    }
+    else
+    {
+        f = engine_freq;  // moteur
+    }
+
+    if (f > 0)
+    {
+        if (f != current_freq)  // on change la fréquence uniquement si elle a changé
         {
             unsigned int div = 1193180 / f;
-
             outp(0x43, 0xB6);
             outp(0x42, div & 0xFF);
             outp(0x42, div >> 8);
-            outp(0x61, inp(0x61) | 3);
+            current_freq = f;
         }
+        outp(0x61, inp(0x61) | 3);  // active le speaker
+    }
+    else
+    {
+        outp(0x61, inp(0x61) & ~3);  // coupe le speaker si rien à jouer
+        current_freq = 0;
     }
 
     old_timer();

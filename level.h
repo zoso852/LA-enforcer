@@ -15,6 +15,8 @@ extern char road_change;
 #define EXPAND_LEFT 0x32
 #define EXPAND_RIGHT 0x64
 
+void init_level();
+void update_level();
 void create_road();
 void create_enemy();
 void create_decor();

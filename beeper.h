@@ -5,10 +5,15 @@ typedef enum {
     SND_SHOOT,
     SND_HIT,
     SND_COLLISION,
-    SND_EXPLOSION
+    SND_EXPLOSION,
+    SND_BONUS,
+    SND_SQUEAL,
+    SND_MALUS
 } sound_id_t;
 
+
 void interrupt timer_isr(void);
+
 
 void play_sound(const unsigned short *snd);
 

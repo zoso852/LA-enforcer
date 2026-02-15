@@ -16,6 +16,7 @@
 #include "decor.h"
 #include "bullets.h"
 #include "beeper.h"
+#include "collisio.h"
 
 
 int max_rel_x=30;
@@ -89,7 +90,7 @@ int push, cx, cy;
 
 	if (collision_counter >0 ) collision_counter--;
 	
-	if (!player.alive) return;
+	if (!(player.flags & PLAYER_ALIVE)) return;
 	
 	for (i=0; i<MAX_ENEMY; i++) {
     	if (!(enemy[i].flags & ENEMY_ACTIVE)) continue;
@@ -106,10 +107,7 @@ int push, cx, cy;
 	
         	dy  = ((player.box.y>>4) + player.box.h) - (enemy[i].box.y>>4);
         	dy2 = ((enemy[i].box.y>>4) + enemy[i].box.h) - (player.box.y>>4);
-        	overlapY = dy < dy2 ? dy : dy2;
-	
-        	//rel_x = player.vx - enemy[i].vx;
-        	//rel_y = player.vy - enemy[i].vy;
+        	overlapY = dy < dy2 ? dy : dy2;    
         	
            	cx = (player.box.x + (player.box.w>>1))
            	- (enemy[i].box.x + (enemy[i].box.w>>1));
@@ -134,34 +132,24 @@ int push, cx, cy;
                 	enemy[i].rvx += push<<1;
             	}
 	
-            	/*enemy[i].rvx = rel_x;  //player a forcément moins de recul que enemy, à corriger peut être
-				player.rvx = -rel_x;
-			
-				enemy[i].rvy = rel_y<<1;
-				player.rvy = -rel_y; */
         	} else {
             	// choc vertical
             	push = overlapY;
 	
             	if (player.box.y>enemy[i].box.y) {
-                	//player.box.y += push << 4;
+                	
                 	enemy[i].box.y += push << 4;
                 	
                 	player.rvy -= push<<4;
                 	enemy[i].rvy += push<<4;
             	} else {
-                	//player.box.y -= push << 4;
+                	
                 	enemy[i].box.y -= push << 4;
                 	
                 	player.rvy += push<<4;
                 	enemy[i].rvy -= push<<4;
             	}
 	
-            	/*enemy[i].rvy = rel_y<<2;
-				player.rvy = -rel_y<<1;
-			
-				enemy[i].rvx = rel_x>>1;
-				player.rvx = -rel_x; */
      		}
      		
      		enemy[i].collision_timer=10;
@@ -194,7 +182,6 @@ for (j=0;j<MAX_ENEMY;j++){
 		
 		if ( jx + enemy[j].box.w <= ix ) continue;
 		if ( ix + enemy[i].box.w <= jx ) continue;
-		//if ((unsigned)(jx - (ix + iw)) >= (unsigned)(jw + iw)) continue;
 
 		
 		jy = enemy[j].box.y>>4;
@@ -202,11 +189,9 @@ for (j=0;j<MAX_ENEMY;j++){
 		jh = enemy[j].box.h;
 		ih = enemy[i].box.h;
 		
-		//if ((unsigned)(jy - (iy + ih)) >= (unsigned)(jh + ih)) continue;
+		
 		if ( jy + enemy[j].box.h <= iy) continue;
 		if ( iy + enemy[i].box.h <= jy) continue;
-		
-		//if (test_collision(&enemy[j].box, &enemy[i].box)) {
 
     		play_sound_id(SND_COLLISION);
     		
@@ -234,6 +219,13 @@ for (j=0;j<MAX_ENEMY;j++){
             		if (push>2) push=2;
             		enemy[j].rvx +=push<<1;
             		enemy[i].rvx -= push<<1;
+            		
+            			if (enemy[i].ai == CIVILIAN_AI && enemy[j].ai == CIVILIAN_AI)
+            			{			// changement de lane pour civilian. Si + de 3 lanes = problème
+            				if (enemy[j].vx_target ==1) enemy[i].vx_target +=1;
+            					else if (enemy[i].vx_target == 3) enemy[j].vx_target -=1;
+            						else enemy[j].vx_target -= 1;
+            			}
         		} else {
             		// j est à gauche
             		enemy[j].box.x -= push;
@@ -242,6 +234,12 @@ for (j=0;j<MAX_ENEMY;j++){
             		if (push>2) push=2;
             		enemy[j].rvx -=push<<1;
             		enemy[i].rvx += push<<1;
+            			if (enemy[i].ai == CIVILIAN_AI && enemy[j].ai == CIVILIAN_AI)
+            			{			// changement de lane pour civilian. Si + de 3 lanes = problème
+            				if (enemy[i].vx_target ==1) enemy[j].vx_target +=1;
+            					else if (enemy[j].vx_target == 3) enemy[i].vx_target -=1;
+            						else enemy[i].vx_target -= 1;
+            			}
         		}
 				
 				/*if (enemy[i].collision_timer==0){
@@ -296,11 +294,28 @@ for (j=0;j<MAX_ENEMY;j++){
 void test_collision_decor(){
 
 int i;
-    for (i=0;i<MAX_DECOR;i++) {
-    	if (decor[i].flags & DECOR_ACTIVE && decor[i].flags & DECOR_SOLID){
-    		if (test_collision(&player.box, &decor[i].box) && player.alive) kill_player();
-    		}
+    for (i=0;i<MAX_DECOR;i++)
+    {
+    	if (decor[i].flags & DECOR_ACTIVE)
+    	{
+    		if (test_collision(&player.box, &decor[i].box) && player.flags & PLAYER_ALIVE)
+    		{
+    		if (decor[i].flags & DECOR_SOLID) kill_player();
+    		if (decor[i].flags & DECOR_FUEL)
+    			{
+    			pick_up_jerrycan(i);
+    			}
+       		}
+    		
     	}
+    }
+}
+
+void pick_up_jerrycan(int i)
+{
+decor[i].flags=0;
+init_fuel(); //=faire le plein
+play_sound_id(SND_BONUS);
 }
 
 void test_collision_decor_enemy(){

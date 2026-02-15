@@ -13,6 +13,7 @@
 #include "background.h"
 #include "beeper.h"
 #include "bullets.h"
+#include "decor.h"
 
 unsigned char far viper[670] = {
 17,39,5,1,114,6,1,115,7,4,137,11,1,115,12,12,114,24,3,185,27,1,115,28,2,136,30,1,210,31,1,209,32,1,208,33,1,17,254,1,1,115,2,36,6,254,0,1,114,1,1,64,2,1,65,3,3,64,6,1,12,7,1,64,8,3,42,11,1,41,12,1,6,13,1,41,14,1,136,15,1,18,16,2,232,18,2,209,20,6,136,26,1,6,27,11,42,38,1,6,254,0,1,6,1,1,163,2,1,64,3,1,42,4,7,41,11,1,113,12,1,19,13,1,136,14,1,41,15,3,139,18,1,138,19,3,6,22,1,138,23,3,137,26,13,41,254,0,1,6,1,1,163,2,1,12,3,7,6,10,1,41,11,1,18,12,1,19,13,1,234,14,8,12,22,3,42,25,2,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,6,1,1,64,2,8,41,10,1,6,11,1,18,12,1,19,13,1,137,14,1,12,15,12,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,12,1,1,65,2,8,41,10,1,6,11,1,18,12,1,19,13,1,138,14,1,12,15,12,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,64,1,1,65,2,8,41,10,1,6,11,1,18,12,1,19,13,1,163,14,1,42,15,12,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,64,1,1,65,2,8,41,10,1,6,11,1,18,12,1,19,13,1,6,14,13,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,64,1,1,65,2,8,41,10,1,6,11,1,18,12,1,19,13,1,6,14,13,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,12,1,1,65,2,8,41,10,1,6,11,1,18,12,1,19,13,1,6,14,1,42,15,12,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,6,1,1,65,2,1,42,3,8,41,11,1,18,12,1,19,13,1,137,14,1,42,15,12,41,27,1,6,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,6,1,1,164,2,1,12,3,8,41,11,1,208,12,1,19,13,1,234,14,1,42,15,12,41,27,1,136,28,1,19,29,1,18,30,1,136,31,8,41,254,0,1,6,1,1,163,2,1,12,3,8,41,11,1,113,12,1,19,13,1,136,14,1,6,15,10,42,25,4,41,29,2,6,31,8,41,254,0,1,114,1,1,12,2,2,64,4,1,12,5,5,42,10,3,41,13,1,136,14,1,232,15,10,19,25,1,136,26,12,42,38,1,6,254,0,1,17,1,1,113,2,10,6,12,4,113,16,21,6,37,1,4,38,1,184,254,4,1,185,5,1,114,6,5,137,11,1,113,12,8,114,20,6,185,26,1,114,27,1,113,28,1,114,29,1,210,30,2,209,32,1,18,33,1,17,255};
@@ -35,8 +36,14 @@ enemy_t enemy[MAX_ENEMY];
 
 int nb_enemy=0;
 
-void init_enemies(){
+void init_enemy(){
+	int i;
 
+	for (i=0; i<MAX_ENEMY;i++)
+		{
+		enemy[i].flags = 0;
+		}
+	nb_enemy=0;
 };
 
 
@@ -45,6 +52,7 @@ void spawn_enemy(int x, int y, int type, char ai, int speed, int vx) {
     for (i = 0; i < MAX_ENEMY; i++) {
         if (!(enemy[i].flags & ENEMY_ACTIVE)) {
 
+			enemy[i].flags = 0;
             enemy[i].flags |= ENEMY_ACTIVE;
             
             enemy[i].type = type;
@@ -166,8 +174,7 @@ void update_enemies(){
         			}
         		else if (enemy[i].box.x>R_road[(top_line-0+(enemy[i].box.y>>4))%200]-(28*enemy[i].vx_target) ) enemy[i].vx = -1;
         		
-        		//if (rand() %20 == 0) shoot_bullet(i);
-        		
+        		        		
         		//fprintf(logf, "topline = %d, y = %d, topline(y) = %d\n", top_line,enemy[i].box.y>>4, (top_line+(enemy[i].box.y>>4))%200);
 //fclose(logf);
         	}
@@ -180,7 +187,24 @@ void update_enemies(){
     			}
         	else enemy[i].rvx = 0;
         }
-        	
+        
+        
+        if (enemy[i].rvy!=0)
+			{
+        	if (enemy[i].rvy<-3)
+        		{
+    			enemy[i].rvy -=  -((abs(enemy[i].rvy) + 3) >> 2); // ~25% friction
+    			}
+    		else if (enemy[i].rvy>3)
+    			{
+    			enemy[i].rvy +=  -((abs(enemy[i].rvy) + 3) >> 2); // ~25% friction
+    			}
+        	else if (enemy[i].rvy<0) enemy[i].rvy+=1;
+        		else if (enemy[i].rvy>0) enemy[i].rvy-=1;
+        	}
+        
+        /*
+        //   OLD FRICTION
         if (enemy[i].rvy!=0) {
         	if (enemy[i].rvy>3||enemy[i].rvy<3) {
         		sign = (enemy[i].rvy > 0) ? 1 : -1;
@@ -190,7 +214,7 @@ void update_enemies(){
         	
 
 				}
-        
+        */
         enemy[i].vy = enemy[i].vy_engine+enemy[i].rvy;
         
         // Gestion Y suivant vitesse du joueur
@@ -223,18 +247,23 @@ void draw_enemies() {
 
 void damage_enemy (int damage, int enemy_number){
 	enemy[enemy_number].hp-=damage;
-	if (enemy[enemy_number].hp<0) destroy_enemy(enemy_number);
+	if (enemy[enemy_number].hp<0)
+		{
+		if (enemy[enemy_number].type = 2) reduce_fuel(100); //Si c'est un civilian, malus
+		destroy_enemy(enemy_number);
+		}
 }
 
 void destroy_enemy(int enemy_number) {
 
-play_sound_id(SND_EXPLOSION);
+if (enemy[enemy_number].ai == CIVILIAN_AI) play_sound_id(SND_MALUS);
+else play_sound_id(SND_EXPLOSION);
+
 spawn_enemy(enemy[enemy_number].box.x,enemy[enemy_number].box.y,WRECK, WRECK_AI,enemy[enemy_number].vy,enemy[enemy_number].vx);
-//spawn_wreck(enemy[enemy_number].box.x,enemy[enemy_number].box.y,enemy[enemy_number].vy);
+
 enemy[enemy_number].flags = 0;
 spawn_effect(enemy[enemy_number].box.x-13,enemy[enemy_number].box.y-(8<<4),EFFECT_EXPLOSION);
-
-if (enemy[enemy_number].type = 2) reduce_fuel(100);
+if (enemy[enemy_number].ai == STANDART_AI) gen_decor(enemy[enemy_number].box.x,enemy[enemy_number].box.y>>4,JERRYCAN);
 
 nb_enemy--;
 

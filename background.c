@@ -10,13 +10,16 @@
 #include "background.h"
 #include "control.h"
 #include "level.h"
+#include "beeper.h"
 
 unsigned char roadbuf[200][250];
 unsigned char *dst;
+extern unsigned char road_color=0x17;
+extern unsigned int y_line_counter=0;
 
 //left_road=30, right_road=220 à la base.
 unsigned short L_road[200], R_road[200];
-unsigned short left_road=70, right_road=170;
+unsigned short left_road, right_road;
 
 int top_line = 0;   // la 1ère ligne visible
 
@@ -24,6 +27,52 @@ int scroll_speed = 0;
 int y_offset_fp;
 int counter_road_change = 0;
 static void generate_line();
+
+void create_tire_mark(char mark_color)
+{
+
+int i;
+    int length;
+    int x_start, x_end;
+    int dx;
+    int x;
+    int acc;
+    int step;
+    int line;
+    
+    if (!(player.flags & PLAYER_ALIVE)) return;
+
+    length = player.vy >> 4;
+    if (length < 1)
+        length = 1;
+
+    x_start = player.box.x;
+    x_end   = x_start + player.vx;
+
+    dx = x_end - x_start;
+    x = x_start;
+    acc = 0;
+
+    for (i = 0; i < length; i++)
+    {
+        line = (top_line + 188 - i + 200) % 200;
+        dst = roadbuf[line];
+
+        // traces de pneus
+        memset(dst + x, mark_color, 2);
+        memset(dst + x + 13, mark_color, 2);
+
+        // incrément DDA
+        acc += dx;
+        if (length != 0)
+        {
+            step = acc / length;   //TODO enlever la division un jour
+            x += step;
+            acc -= step * length;
+        }
+    }
+
+}
 
 void gen_background()
 {
@@ -122,7 +171,7 @@ static void generate_line()
 
 
     // route
-    memset(dst + left_road + 5, 0x17, right_road - left_road - 5);
+    memset(dst + left_road + 5, road_color, right_road - left_road - 5);
     
     
     
@@ -134,6 +183,16 @@ static void generate_line()
     memset(dst + right_road, 0x2F, 250 - right_road);
 
     // (ne surtout pas toucher à dst[250..319], c’est le HUD)
+    if (y_line_counter!=0)
+    	{
+    	if (y_line_counter>0) y_line_counter--;
+    	if (y_line_counter == 156) road_color = 0x17;
+    	if (y_line_counter == 1 && player.flags & PLAYER_ALIVE) 
+    		{
+    		init_fuel();
+    		play_sound_id(SND_BONUS);
+    		}
+    	}
 }
 
 
@@ -142,6 +201,12 @@ void init_background(){
 	int i;
 	top_line = 0;
 	y_offset_fp = 0;
+	road_change = 0;
+	counter_road_change = 0;
+	left_road=70;
+	right_road=170;
+	y_line_counter = 0;
+	road_color = 0x17;
 	
 	for (i=0;i<200;i++)
 		{

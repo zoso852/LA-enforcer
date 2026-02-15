@@ -17,14 +17,36 @@ char road_change=0;
 FILE *logf;
 
 long scroll_y=0;
+int level_flag=0;
 int interval = 0;
+int fuel_interval = 0;
 int old_value;
+
+void init_level()
+{
+	scroll_y=0;
+	level_flag=0;
+	interval = 0;
+	fuel_interval = 0;
+}
+
+void update_level()
+{
+fuel_interval+=scroll_speed>>4;
+if (fuel_interval>3500) //3500
+	{
+	gen_decor((left_road >> 1)-5,-25,PUMP); //y=-la hauteur du sprite de la pompe
+	fuel_interval = 0;
+	road_color = 0x0F;
+	y_line_counter = 160; //Quand = 166, fin de la ligne blanche qui marque le checkpoint. Quand = 1, plein d'essence, la voiture passe dessus
+	}
+}
 
 void create_decor()
 {
 	int x, road_offset;
 		
-	if (rand()%20==1 && nb_decor<MAX_DECOR)
+	if (rand()%20==1 && nb_decor<MAX_DECOR-2)
 	{
 		road_offset = right_road-left_road;
 		
@@ -46,9 +68,9 @@ void create_enemy()
 void create_civilian()
 	{
 		int lane;
-		if (rand()%75==1 && nb_enemy<MAX_ENEMY)
+		if (rand()%75==1 && nb_enemy<MAX_CIVILIAN)
 		{
-			lane=(rand()%3)+1;
+			lane=(rand()%3)+1; //si > 3 problème au changement de lane dans collisio.c
 			spawn_enemy(right_road-(28*lane), -60<<4, CIVILIAN, CIVILIAN_AI, 60,lane);
 		}
 	}

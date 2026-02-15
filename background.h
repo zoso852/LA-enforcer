@@ -7,8 +7,11 @@ extern unsigned short left_road, right_road;
 extern unsigned short L_road[200], R_road[200];
 extern int scroll_speed;
 extern signed int top_line;
+extern unsigned char road_color;
+extern unsigned int y_line_counter;
 
 void init_background();
+void create_tire_mark();
 void gen_background(unsigned char far *buf);
 void update_background();
 

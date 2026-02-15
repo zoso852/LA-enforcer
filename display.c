@@ -60,7 +60,7 @@ signed int line;
 
 void clear_buffer()
 {
-    //_fmemset(buffer, 0x00, 64000);
+    _fmemset(buffer, 0x00, 64000);
 }
 
 void flip (){
@@ -175,8 +175,10 @@ void init_hud() {
 		i++;
 		y_sprite=hud[i];
 	}
+	cursor = 0;
+	draw_speed_cursor(0);
 	
-	draw_full_fuel();
+	//draw_full_fuel();
 
 }
 
@@ -190,7 +192,7 @@ void draw_speed_cursor(int cx) {
         *p = 0;
         p += 320;
     }
-
+	if (cx>50) cx = 50;
     /* déplacement */
     if (cursor < cx) cursor++;
     else if (cursor > cx) cursor--;
@@ -226,22 +228,42 @@ void update_fuel_gauge(int fuel_new)
     unsigned char *p;
     int x;
     
+    if (fuel_new > FUEL_W) fuel_new = FUEL_W; //je clamp pas en bas, si fuel = 0 -> décès
+    
     fuel = fuel_new;
-
+    
     if (fuel == fuel_old) return;
-    if (fuel > fuel_old) fuel = fuel_old; /* sécurité */
+    if (fuel > fuel_old) 
+    	{
+    	p = buffer + FUEL_BASE + fuel_old;
 
-    p = buffer + FUEL_BASE + fuel;
+    	for (x = fuel_old; x < fuel; x++)
+    		{
+        	p[0]       = FUEL_COLOR;
+        	p[320]     = FUEL_COLOR;
+        	p[640]     = FUEL_COLOR;
+        	p[960]     = FUEL_COLOR;
+        	p[1280]    = FUEL_COLOR;
+        	p[1600]    = FUEL_COLOR;
+        	p++;
+        	}
+        }
+        else
+        {
 
-    for (x = fuel; x < fuel_old; x++) {
-        p[0]       = EMPTY_COLOR;
-        p[320]     = EMPTY_COLOR;
-        p[640]     = EMPTY_COLOR;
-        p[960]     = EMPTY_COLOR;
-        p[1280]    = EMPTY_COLOR;
-        p[1600]    = EMPTY_COLOR;
-        p++;
-    }
+    	p = buffer + FUEL_BASE + fuel;
+	
+    	for (x = fuel; x < fuel_old; x++) 
+    	{
+        	p[0]       = EMPTY_COLOR;
+        	p[320]     = EMPTY_COLOR;
+        	p[640]     = EMPTY_COLOR;
+        	p[960]     = EMPTY_COLOR;
+        	p[1280]    = EMPTY_COLOR;
+        	p[1600]    = EMPTY_COLOR;
+        	p++;
+    	}
+    	}
 
     fuel_old = fuel;
 }

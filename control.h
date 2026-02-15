@@ -7,6 +7,10 @@
 
 #define GUN_DAMAGE 5
 
+#define PLAYER_ALIVE 0x01
+#define PLAYER_DRIFTING 0x02
+#define PLAYER_OUT_OF_FUEL 0x04
+
 #include "entity.h"
 
 typedef struct {
@@ -16,12 +20,13 @@ typedef struct {
     unsigned char far *sprite;
     short speed_index, steering;
     char gun_timer;
-    char alive;
+    unsigned char flags;
     
 } playertype;
 
 extern playertype player;
 extern char keyboard_ready;
+extern char display_game_over;
 
 void init_keyboard();
 void restore_keyboard();
@@ -30,6 +35,8 @@ void update_input();
 void player_fire();
 void player_gun_update();
 void kill_player();
+void init_fuel();
 void reduce_fuel(int amount);
+void add_fuel(int amount);
 
 #endif

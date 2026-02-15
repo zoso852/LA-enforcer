@@ -6,7 +6,8 @@
 #define E_MAX_SPEED 2
 #define E_ACCEL 1
 
-#define MAX_ENEMY 32
+#define MAX_ENEMY 10
+#define MAX_CIVILIAN 16
 
 #define ENEMY_ACTIVE 0x01  // 0000 0001
 #define ENEMY_SOLID  0x02  // 0000 0010
@@ -43,7 +44,7 @@ typedef struct {
 extern enemy_t enemy[MAX_ENEMY];
 extern int nb_enemy;
 
-void init_enemies();
+void init_enemy();
 void spawn_enemy(int x, int y, int type, char ai,int speed,int vx);
 void update_enemies();
 void draw_enemies();

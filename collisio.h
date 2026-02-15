@@ -9,5 +9,6 @@ void test_collision_player_enemies();
 void test_collision_enemies_enemies();
 void test_collision_decor_enemy();
 void test_player_shoot();
+void pick_up_jerrycan(int i);
 
 #endif
