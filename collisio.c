@@ -17,6 +17,7 @@
 #include "bullets.h"
 #include "beeper.h"
 #include "collisio.h"
+#include "level.h"
 
 
 int max_rel_x=30;
@@ -99,7 +100,7 @@ int push, cx, cy;
 	
         	play_sound_id(SND_COLLISION);
         	
-        	if (enemy[i].flags & ENEMY_DEADLY) kill_player();
+        	if (enemy[i].flags & ENEMY_DEADLY && player.vy>70) kill_player();
 	
 	    	dx  = (player.box.x + player.box.w) - enemy[i].box.x;
         	dx2 = (enemy[i].box.x + enemy[i].box.w) - player.box.x;
@@ -314,7 +315,7 @@ int i;
 void pick_up_jerrycan(int i)
 {
 decor[i].flags=0;
-init_fuel(); //=faire le plein
+add_fuel(JERRYCAN_FUEL); //=faire le plein
 play_sound_id(SND_BONUS);
 }
 

@@ -10,6 +10,9 @@
 #define FUEL_BASE (FUEL_Y*320 + FUEL_X)
 
 void init_display();
+void set_palette(unsigned char *pal);
+void set_palette_fade_out();
+void set_palette_fade_in(unsigned char *pal);
 void update_display();
 void clear_buffer();
 void flip();

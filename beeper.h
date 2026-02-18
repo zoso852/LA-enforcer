@@ -8,7 +8,9 @@ typedef enum {
     SND_EXPLOSION,
     SND_BONUS,
     SND_SQUEAL,
-    SND_MALUS
+    SND_MALUS,
+    SND_OF_SILENCE,
+    SND_INTRO
 } sound_id_t;
 
 
@@ -22,6 +24,7 @@ void play_sound_id(sound_id_t id);
 void init_sound(void);
 
 void sound_shutdown(void);
+
 
 
 #endif

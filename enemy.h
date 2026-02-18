@@ -3,11 +3,11 @@
 
 #include "entity.h"
 
-#define E_MAX_SPEED 2
+#define E_MAX_SPEED 1 //VX des enemy
 #define E_ACCEL 1
 
 #define MAX_ENEMY 10
-#define MAX_CIVILIAN 16
+#define MAX_CIVILIAN 6
 
 #define ENEMY_ACTIVE 0x01  // 0000 0001
 #define ENEMY_SOLID  0x02  // 0000 0010
@@ -32,6 +32,7 @@ typedef struct {
     int collision_timer;
     int vx_target;  //=lane pour les civilian
     int hp;
+    int y_target; // A quelle hauteur l'enemy veut aller?
     unsigned char flags;
     char ai;
     int type;    // index dans enemy_types[]

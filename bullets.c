@@ -14,15 +14,15 @@
 #include "sound.h"
 #include "bullets.h"
 
-unsigned char regular_bullet [144] =
+unsigned char regular_bullet [70] =
 {
-7, 7,1,1,4,2,1,40,3,1,41,4,1,40,5,1,4,254,0,1,4,1,1,40,2,1,41,3,1,67,4,1,41,5,1,40,6,1,4,254,0,1,40,1,1,41,2,1,67,3,1,68,4,1,67,5,1,41,6,1,40,254,0,1,41,1,1,67,2,1,68,3,1,15,4,1,68,5,1,67,6,1,41,254,0,1,40,1,1,41,2,1,67,3,1,68,4,1,67,5,1,41,6,1,40,254,0,1,4,1,1,40,2,1,41,3,1,67,4,1,41,5,1,40,6,1,4,254,1,1,4,2,1,40,3,1,41,4,1,40,5,1,4,255
+ 5,5,1,1,40,2,1,41,3,1,40,254,0,1,40,1,1,67,2,1,68,3,1,67,4,1,40,254,0,1,41,1,1,68,2,1,15,3,1,68,4,1,41,254,0,1,40,1,1,67,2,1,68,3,1,67,4,1,40,254,1,1,40,2,1,41,3,1,40,255
 };
 
 bullet_t bullet[MAX_BULLET];
 
 BulletType bullet_types[1] = {
-    {regular_bullet, 5},
+    {regular_bullet, 4}, // chiffre = vitesse
 };
 
 void init_bullets(void)
@@ -81,7 +81,7 @@ void update_bullets()
 	for (i=0; i<MAX_BULLET;i++)
 		{
 		if (!(bullet[i].flags & BULLET_ACTIVE)) continue;
-		if (bullet[i].box.x<0 || bullet[i].box.x>250 || bullet[i].box.y < -640 || bullet[i].box.y >3200) bullet[i].flags = 0;
+		if (bullet[i].box.x<0 || bullet[i].box.x>250 || bullet[i].box.y < 0 || bullet[i].box.y >3185) bullet[i].flags = 0;
 		
 		bullet[i].box.x += bullet[i].vx;
 		bullet[i].box.y += (bullet[i].vy<<4); //+ scroll_speed;

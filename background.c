@@ -14,7 +14,7 @@
 
 unsigned char roadbuf[200][250];
 unsigned char *dst;
-extern unsigned char road_color=0x17;
+extern unsigned char road_color = ROAD_COLOR;
 extern unsigned int y_line_counter=0;
 
 //left_road=30, right_road=220 à la base.
@@ -27,6 +27,10 @@ int scroll_speed = 0;
 int y_offset_fp;
 int counter_road_change = 0;
 static void generate_line();
+
+
+
+//static unsigned short grass_rng = 0xACE1;    utilisé pour bruit herbe mais trop lent
 
 void create_tire_mark(char mark_color)
 {
@@ -85,8 +89,16 @@ void gen_background()
 	}
 }
 
+/*static unsigned short lfsr16(void)
+{
+    grass_rng = (grass_rng >> 1) ^ (-(grass_rng & 1u) & 0xB400u);  Utilisé pour bruit herbe mais trop lent
+    return grass_rng;
+}*/
+
 static void generate_line()
 {    
+	int i;
+	unsigned char n;
     switch (road_change)
     {
     
@@ -163,11 +175,20 @@ static void generate_line()
     L_road[top_line] = left_road;
     R_road[top_line] = right_road;
     // herbe gauche
-    memset(dst, 0x2F, left_road);
+    memset(dst, GRASS_COLOR , left_road);
     
-    memset(dst +left_road , 0x17, 2);
     
-    memset(dst +left_road +2 , 0x0F, 5);
+    /*for (i = 0; i < left_road; i++)
+{
+    if ((lfsr16() & 63) == 0)   // ~1 sur 64  Utilisé pour bruit herbe mais trop lent
+        dst[i] = 0x30;          // clair
+    else
+        dst[i] = 0x2F;          // normal
+}*/
+    
+    memset(dst +left_road , ROAD_COLOR, 2);
+    
+    memset(dst +left_road +2 , LINE_COLOR, 5);
 
 
     // route
@@ -175,18 +196,30 @@ static void generate_line()
     
     
     
-    memset(dst + right_road - 5 , 0x0F, 3);
+    memset(dst + right_road - 5 , LINE_COLOR, 3);
     
-    memset(dst + right_road - 2 , 0x17, 2);
+    memset(dst + right_road - 2 , ROAD_COLOR, 2);
 
     // herbe droite1
-    memset(dst + right_road, 0x2F, 250 - right_road);
+    memset(dst + right_road, GRASS_COLOR, 250 - right_road);
+    
+    /*for (int i = right_road; i < 250; i++)
+{
+    if ((lfsr16() & 63) == 0)    Utilisé pour bruit herbe mais trop lent
+        dst[i] = 0x30;
+    else
+        dst[i] = 0x2F;
+}*/
 
     // (ne surtout pas toucher à dst[250..319], c’est le HUD)
+    
+    dst[rand()&250]+=1;
+    dst[rand()&250]+=1;
+    
     if (y_line_counter!=0)
     	{
     	if (y_line_counter>0) y_line_counter--;
-    	if (y_line_counter == 156) road_color = 0x17;
+    	if (y_line_counter == 156) road_color = ROAD_COLOR;
     	if (y_line_counter == 1 && player.flags & PLAYER_ALIVE) 
     		{
     		init_fuel();
@@ -194,6 +227,8 @@ static void generate_line()
     		}
     	}
 }
+
+
 
 
 void init_background(){
@@ -206,7 +241,7 @@ void init_background(){
 	left_road=70;
 	right_road=170;
 	y_line_counter = 0;
-	road_color = 0x17;
+	road_color = ROAD_COLOR;
 	
 	for (i=0;i<200;i++)
 		{

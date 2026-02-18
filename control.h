@@ -1,11 +1,12 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-#define ACC_CURVE 5
+/*#define ACC_CURVE 5
 #define BRAKE 7
-#define MAX_SPEED 500
+#define MAX_SPEED 500 */
 
 #define GUN_DAMAGE 5
+#define PLAYER_RELOAD_TIME 4 //4
 
 #define PLAYER_ALIVE 0x01
 #define PLAYER_DRIFTING 0x02

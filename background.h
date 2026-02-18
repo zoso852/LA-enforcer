@@ -10,6 +10,10 @@ extern signed int top_line;
 extern unsigned char road_color;
 extern unsigned int y_line_counter;
 
+#define GRASS_COLOR 0xF6
+#define ROAD_COLOR 0xF9
+#define LINE_COLOR 0xFC
+
 void init_background();
 void create_tire_mark();
 void gen_background(unsigned char far *buf);

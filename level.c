@@ -20,8 +20,11 @@ long scroll_y=0;
 int level_flag=0;
 int interval = 0;
 int fuel_interval = 0;
-int old_value;
+int current_fuel_interval = 3500;
 
+int old_value;
+extern int decor_counter_rand = DECOR_COUNTER_RAND; //pour diminuer les chances d'apparition d'un décor plus il y en a à l'écran
+													//initialisé comme ça parce que le premier décor est détruit mais pas créé.
 void init_level()
 {
 	scroll_y=0;
@@ -33,11 +36,12 @@ void init_level()
 void update_level()
 {
 fuel_interval+=scroll_speed>>4;
-if (fuel_interval>3500) //3500
+if (fuel_interval>current_fuel_interval) //3500
 	{
 	gen_decor((left_road >> 1)-5,-25,PUMP); //y=-la hauteur du sprite de la pompe
 	fuel_interval = 0;
-	road_color = 0x0F;
+	current_fuel_interval += FUEL_INTERVAL_DELTA;
+	road_color = LINE_COLOR;
 	y_line_counter = 160; //Quand = 166, fin de la ligne blanche qui marque le checkpoint. Quand = 1, plein d'essence, la voiture passe dessus
 	}
 }
@@ -46,16 +50,17 @@ void create_decor()
 {
 	int x, road_offset;
 		
-	if (rand()%20==1 && nb_decor<MAX_DECOR-2)
+	if (rand()%(DECOR_RAND+decor_counter_rand)==1 /*&& nb_decor<MAX_DECOR-2*/)
 	{
 		road_offset = right_road-left_road;
 		
-		x= rand()%(250-road_offset);
+		x= rand()%(235-road_offset); //235 pour éviter que le décor sorte trop par la droite
 		
 		if(x>left_road) x+=road_offset;
 			else x-= decor_types[PALM_TREE].sprite[0];
 		
 		gen_decor(x,-70, PALM_TREE);
+		decor_counter_rand+=DECOR_COUNTER_RAND;
 	}
 }
 
