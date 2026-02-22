@@ -11,6 +11,7 @@
 #include "control.h"
 #include "level.h"
 #include "beeper.h"
+#include "fonts.h"
 
 unsigned char roadbuf[200][250];
 unsigned char *dst;
@@ -224,6 +225,7 @@ static void generate_line()
     		{
     		init_fuel();
     		play_sound_id(SND_BONUS);
+    		add_score(15);
     		}
     	}
 }

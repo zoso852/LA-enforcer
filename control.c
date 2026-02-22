@@ -16,7 +16,6 @@
 #include "effects.h"
 #include "level.h"
 #include "background.h"
-#include "sound.h"
 #include "collision.h"
 #include "beeper.h"
 
@@ -256,7 +255,7 @@ void update_input() {
     
     // Tirer
      
-     if (key_down[0x1D]) {
+     if (key_down[0x1D] && player.flags & PLAYER_ALIVE) {
      	player_fire();
      }
      
@@ -392,14 +391,24 @@ void game_over()
             }
         if (key_down[0x10] || key_down[0x1E])
         	{
-        	memset(key_up, 0, sizeof(key_up)); //vide le cache du clavier
         	
-        	while (kbhit()) inp(0x60);
-        	restore_keyboard();
-        	quit();
-        	}
-}
-
+        	 // attendre relâchement
+    		while (key_down[0x10] || key_down[0x1E]);
+		
+    		restore_keyboard();
+		
+    		// purge buffer BIOS
+    		while (kbhit()) getch();
+		
+    		memset(key_down, 0, sizeof(key_down));
+    		memset(key_up,   0, sizeof(key_up));
+		
+    		delay(50);
+		
+    		quit();
+        			}
+		}
+		
 void player_drift()
 {
 spawn_effect(player.box.x, player.box.y+450, EFFECT_SMOKE);

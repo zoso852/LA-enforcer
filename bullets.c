@@ -11,7 +11,6 @@
 #include "control.h"
 #include "effects.h"
 #include "background.h"
-#include "sound.h"
 #include "bullets.h"
 
 unsigned char regular_bullet [70] =

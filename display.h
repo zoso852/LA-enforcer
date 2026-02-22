@@ -18,10 +18,12 @@ void clear_buffer();
 void flip();
 void flip1 (unsigned short seg, unsigned short off);
 void put_sprite(int x, signed int y, unsigned char far *sprite);
+void put_hud(int x, signed int y, unsigned char far *sprite);
 void init_hud();
 void draw_speed_cursor(int cx);
 void draw_full_fuel(void);
 void update_fuel_gauge(int fuel_new);
 void free_buffer();
+void erase_score(int x, int y);
 
 #endif

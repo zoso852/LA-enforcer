@@ -11,13 +11,13 @@
 #include "background.h"
 #include "control.h"
 #include "enemy.h"
-#include "sound.h"
 #include "effects.h"
 #include "decor.h"
 #include "bullets.h"
 #include "beeper.h"
 #include "collisio.h"
 #include "level.h"
+#include "fonts.h"
 
 
 int max_rel_x=30;
@@ -100,7 +100,7 @@ int push, cx, cy;
 	
         	play_sound_id(SND_COLLISION);
         	
-        	if (enemy[i].flags & ENEMY_DEADLY && player.vy>70) kill_player();
+        	//if (enemy[i].flags & ENEMY_DEADLY && player.vy>70) kill_player();
 	
 	    	dx  = (player.box.x + player.box.w) - enemy[i].box.x;
         	dx2 = (enemy[i].box.x + enemy[i].box.w) - player.box.x;
@@ -305,6 +305,7 @@ int i;
     		if (decor[i].flags & DECOR_FUEL)
     			{
     			pick_up_jerrycan(i);
+    			add_score(10);
     			}
        		}
     		
