@@ -1,3 +1,0 @@
-largeur, hauteur, y de début, longueur, couleur, y de début, longueur, couleur...
-
-254 en fin de colonne, 255 en fin de sprite

@@ -1,0 +1,220 @@
+#include <conio.h>
+#include <i86.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <string.h>
+#include <stdio.h>
+#include <bios.h>
+
+#include "display.h"
+#include "background.h"
+#include "control.h"
+#include "decor.h"
+#include "level.h"
+#include "enemy.h"
+#include "fonts.h"
+#include "bullets.h"
+
+char road_change=0;
+FILE *logf;
+
+long scroll_y=0;
+int level_flag=0;
+int interval = 0;
+int fuel_interval = 0;
+int current_fuel_interval = 3500;
+int level;
+
+int old_value;
+extern int decor_counter_rand = DECOR_COUNTER_RAND; //pour diminuer les chances d'apparition d'un décor plus il y en a à l'écran
+													//initialisé comme ça parce que le premier décor est détruit mais pas créé.
+													
+extern int enemy_counter_rand = 0;
+int enemy_counter_rand_delta=150;
+
+extern int civilian_counter_rand = 0;
+
+void init_level()
+{
+	scroll_y=0;
+	level_flag=0;
+	interval = 0;
+	fuel_interval = 0;
+	level = 0;
+	
+	
+	
+	enemy_counter_rand = 0;
+	enemy_counter_rand_delta = 150;
+	civilian_counter_rand = 0;
+	decor_counter_rand = DECOR_COUNTER_RAND;
+}
+
+void new_level()
+{
+	level++;
+	current_fuel_interval += FUEL_INTERVAL_DELTA;
+	if (enemy_counter_rand_delta>25) enemy_counter_rand_delta-=30;
+	
+	if (level==3) bullet_speed=5;
+	if (level==6) bullet_speed=6;
+	if (level==12) bullet_speed=7;
+	
+	if (max_bullet_level<MAX_BULLET) max_bullet_level++;
+	
+	if (shoot_rand>20) shoot_rand--;
+}
+
+
+void update_level()
+{
+fuel_interval+=scroll_speed>>4;
+if (fuel_interval>current_fuel_interval) //3500
+	{
+	gen_decor((left_road >> 1)-5,-25,PUMP); //y=-la hauteur du sprite de la pompe
+	fuel_interval = 0;
+	road_color = LINE_COLOR;
+	y_line_counter = 160; //Quand = 166, fin de la ligne blanche qui marque le checkpoint. Quand = 1, plein d'essence, la voiture passe dessus
+	}
+}
+
+void create_decor()
+{
+	int x, road_offset;
+		
+	if (rand()%(DECOR_RAND+decor_counter_rand)==1 /*&& nb_decor<MAX_DECOR-2*/)
+	{
+		road_offset = right_road-left_road;
+		
+		x= rand()%(235-road_offset); //235 pour éviter que le décor sorte trop par la droite
+		
+		if(x>left_road) x+=road_offset;
+			else x-= decor_types[PALM_TREE].sprite[0];
+		
+		gen_decor(x,-70, PALM_TREE);
+		decor_counter_rand+=DECOR_COUNTER_RAND;
+	}
+}
+
+void create_enemy()
+	{
+		if (rand()%(ENEMY_RAND+enemy_counter_rand)==1 /*&& nb_enemy<MAX_ENEMY*/)
+			{
+			spawn_enemy(170, -70<<4, VIPER, STANDART_AI, 120,0);
+			enemy_counter_rand+=enemy_counter_rand_delta;
+			
+			}
+	}
+
+void create_civilian()
+	{
+		int lane;
+		if (rand()%(CIVILIAN_RAND+civilian_counter_rand)==1 /*&& nb_civilian<MAX_CIVILIAN*/)
+		{
+			lane=(rand()%3)+1; //si > 3 problème au changement de lane dans collisio.c
+			spawn_enemy(right_road-(28*lane), -60<<4, CIVILIAN, CIVILIAN_AI, 60,lane);
+			civilian_counter_rand+=CIVILIAN_COUNTER_RAND;
+		}
+	}
+
+void create_road()
+{
+	int counter, random;
+	
+
+	interval += (scroll_speed>>4);
+	
+
+
+	if (interval > 200) 
+		{
+		interval-=200;
+		random = rand()%7;
+		
+		//random = 6;
+		switch (random)
+		{
+			case 0 :
+			road_change=TURN_LEFT;
+			break;
+			case 1 :
+			road_change=TURN_RIGHT;
+			break;
+			
+			case 2 :
+			if (right_road-left_road>110)
+				{
+				road_change=NARROW_LEFT;
+				old_value = left_road;
+				}
+			break;
+			
+			case 3 :
+			if (right_road-left_road>110)
+				{
+				road_change=NARROW_RIGHT;
+				old_value = right_road;
+				}
+			break;
+			
+			case 4 :
+			if (right_road-left_road>130)
+				{
+				road_change=NARROW_CENTER;
+				old_value = right_road;
+				}
+			break;
+			
+			case 5 :
+			if (left_road>50)
+				{
+				road_change=EXPAND_LEFT;
+				old_value = left_road;
+				}
+			break;
+			
+			case 6 :
+			if (right_road<191)
+				{
+				road_change=EXPAND_RIGHT;
+				old_value = right_road;
+				}
+			break;
+				
+		}
+		}
+		switch (road_change)
+		{
+			case TURN_LEFT :
+			if (left_road<30) road_change=0;
+					
+			break;
+					
+			case TURN_RIGHT :
+			if (right_road>220) road_change=0;
+			break;
+			
+			case NARROW_LEFT :
+			if (left_road-old_value>30) road_change =0;
+			break;
+			
+			case NARROW_RIGHT :
+			if (old_value-right_road>30) road_change =0;
+			break;
+			
+			case NARROW_CENTER :
+			if (old_value-right_road>15) road_change =0;
+			break;
+			
+			case EXPAND_LEFT :
+			if (old_value-left_road>30) road_change =0;
+			break;
+			
+			case EXPAND_RIGHT :
+			if (right_road-old_value>30) road_change =0;
+			break;
+		}
+		
+	
+	
+}
