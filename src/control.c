@@ -183,22 +183,6 @@ void update_input() {
         		else if (player.rvy>0) player.rvy-=1;
         	}
 		
-		/* if (player.rvy!=0)
-			{
-        	if (player.rvy>3||player.rvy<3)
-        		{
-        		int sign = (player.rvy > 0) ? 1 : -1;
-    			player.rvy -= sign * ((abs(player.rvy) + 3) >> 2); // ~25% friction
-    			}
-        	else 
-        		{ if (player.rvy<0) player.rvy+=1;  //TODO virer ces conditions si je suis sûr de garder -1 en friction
-        		else {
-        				if (player.rvy>0) player.rvy-=1;
-        			 }
-        		}
-		} */
-		
-	
 	
     // Accélération
         
@@ -220,18 +204,7 @@ void update_input() {
 		
 		}
 	if (player.flags & PLAYER_ALIVE) player.vy_engine = acc_table[player.speed_index];
-	/*
-	// Accélération
-    if (player.speed_index > 0) player.speed_index--;
-    
-    if (key_down[0x48] && player.flags & PLAYER_ALIVE && !(player.flags & PLAYER_OUT_OF_FUEL)) {
-    
-    		if (player.speed_index<49) player.speed_index++;
 
-            player.vy_engine = acc_table[player.speed_index];
-            
-			}
-	*/
 
     // Frein
     if (key_down[0x50] && player.flags & PLAYER_ALIVE) {
@@ -242,17 +215,16 @@ void update_input() {
     		
     		
     //On allume les feux arrières, ça c'est important
-    	/*	cuda[63]=41;
-    		cuda[94]=41;
-    		cuda[418]=41;
-    		cuda[396]=41;										TODO : A refaire quand le sprite Cuda sera définitif
-
+    		cuda[99]=41;
+    		cuda[139]=41;
+    		cuda[444]=41;
+    		cuda[478]=41;										
         }
     if (key_up[0x50])  { //on les éteint
-    		cuda[63]=182;
-    		cuda[94]=182;
-    		cuda[418]=182;
-    		cuda[396]=182; */
+    		cuda[99]=182;
+    		cuda[139]=182;
+    		cuda[444]=182;
+    		cuda[478]=182; 
     }
     
     // Tirer
@@ -276,14 +248,10 @@ void update_input() {
 	
 	     
      // Barre espace pour debug
-     if (key_down[0x39]) 
+     /*if (key_down[0x39]) 
      {
      	add_fuel(250);
-     	//player.rvy+=50;
-     	/*logf = fopen("log.txt", "a");
-fprintf(logf, "scroll_y = %d \n", scroll_y);
-fclose(logf); */
-     } 
+     } */
         
    // En dehors de la route? 
    
@@ -294,21 +262,7 @@ fclose(logf); */
    	if (player.box.x<left_road_limit-5 || player.box.x>right_road_limit+5) create_tire_mark(0xE7);
    	}
    
-   /*
-   //      OLD OFFRAOD
-   	if (player.box.x<(L_road[(top_line+(player.box.y>>4))%200])-3 || player.box.x>(R_road[(top_line+(player.box.y>>4))%200])-13)
-   		{
-   		v_slow_target = player.vy_engine>>1;
-   		//create_tire_mark(0x06);
-   		}
-       	else 
-     		{
-     		v_slow_target = 0;
-     		while (v_slow!=0) v_slow -= 2;
-     		}
-     	
-     if (v_slow<v_slow_target) v_slow+=2;
-     */
+
      // Gestion drift
      
      if (player.flags & PLAYER_DRIFTING && drift_counter<12 &&  player.vy>70)

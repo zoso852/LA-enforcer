@@ -7,6 +7,10 @@ mapper-dosbox-x.map
 *.o
 *.exe
 
+.uuid
+
+
+
 notes.txt
 
 Adlib/
