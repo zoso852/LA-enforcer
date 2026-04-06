@@ -31,6 +31,7 @@ extern int decor_counter_rand = DECOR_COUNTER_RAND; //pour diminuer les chances 
 													
 extern int enemy_counter_rand = 0;
 int enemy_counter_rand_delta=150;
+int enemy_spawn_limiter;
 
 extern int civilian_counter_rand = 0;
 
@@ -41,6 +42,8 @@ void init_level()
 	interval = 0;
 	fuel_interval = 0;
 	level = 0;
+	
+	enemy_spawn_limiter = 0;
 	
 	
 	
@@ -56,9 +59,9 @@ void new_level()
 	current_fuel_interval += FUEL_INTERVAL_DELTA;
 	if (enemy_counter_rand_delta>25) enemy_counter_rand_delta-=30;
 	
-	if (level==3) bullet_speed=5;
-	if (level==6) bullet_speed=6;
-	if (level==12) bullet_speed=7;
+	//if (level==3) bullet_speed=5;
+	if (level==5) bullet_speed=5;
+	//if (level==12) bullet_speed=7;
 	
 	if (max_bullet_level<MAX_BULLET) max_bullet_level++;
 	
@@ -98,12 +101,14 @@ void create_decor()
 
 void create_enemy()
 	{
-		if (rand()%(ENEMY_RAND+enemy_counter_rand)==1 /*&& nb_enemy<MAX_ENEMY*/)
+		if (enemy_spawn_limiter > 0) enemy_spawn_limiter--;
+		else if (rand()%(ENEMY_RAND+enemy_counter_rand)==1 && enemy_spawn_limiter == 0)
 			{
-			spawn_enemy(170, -70<<4, VIPER, STANDART_AI, 120,0);
+			spawn_enemy(100, -70<<4, VIPER, STANDART_AI, 120,0);
 			enemy_counter_rand+=enemy_counter_rand_delta;
-			
+			enemy_spawn_limiter = 3; // On create toutes les 3 frames max
 			}
+		
 	}
 
 void create_civilian()

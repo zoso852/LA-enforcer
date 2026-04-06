@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 
 #include "display.h"
 #include "fonts.h"
@@ -130,6 +131,62 @@ for (i=0;i<3;i++)
 			break;
 		}
 	}
+}
+
+void save_score()
+{
+    time_t now;
+    struct tm *t;
+    FILE *f;
+
+    now = time(NULL);
+    t = localtime(&now);
+
+    f = fopen("score.dat", "w");
+    if (f == NULL)
+        return;
+        
+	fprintf(f, "la-enforcer-score-filev1.0\n");
+    fprintf(f, "%d\n", score);
+    fprintf(f, "%04d-%02d-%02d\n",
+            t->tm_year + 1900,
+            t->tm_mon + 1,
+            t->tm_mday);
+    fprintf(f, "false");
+
+    fclose(f);
+}
+
+int load_score(void)
+{
+    FILE *f;
+    int saved_score;
+    char line[30];
+
+    f = fopen("SCORE.DAT", "r");
+    if (f == NULL)
+        return 0;
+        
+    if (fgets(line, sizeof(line), f) == NULL)
+    {
+        fclose(f);
+        return 0;
+    }
+
+    if (fscanf(f, "%d", &saved_score) != 1)
+    {
+        fclose(f);
+        return 0;
+    }
+
+    fclose(f);
+    
+    return saved_score;
+}
+
+void test_score()
+{
+	if (score>load_score()) save_score();
 }
 
 

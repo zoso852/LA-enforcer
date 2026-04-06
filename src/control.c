@@ -18,6 +18,7 @@
 #include "background.h"
 #include "collision.h"
 #include "beeper.h"
+#include "fonts.h"
 
 #define BIOS_TICK  (*(volatile unsigned long far*)0x0040006CL)
 
@@ -337,13 +338,15 @@ void update_input() {
 
 void game_over()
 {
-	// On peut afficher le Game Over et permettre le restart
-        display_game_over = 1;  // ta fonction pour l'affichage
+	
+        display_game_over = 1;  
+        test_score();
+        
 
         if (key_down[0x13]) {  // touche R
         	display_game_over = 0;
             init_game();
-            game_over_active = 0;  // on reset le flag
+            game_over_active = 0;  
             }
         if (key_down[0x10] || key_down[0x1E])
         	{
