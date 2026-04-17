@@ -6,6 +6,7 @@ mapper-dosbox-x.map
 
 *.o
 *.exe
+*.err
 
 .uuid
 

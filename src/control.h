@@ -28,6 +28,7 @@ typedef struct {
 extern playertype player;
 extern char keyboard_ready;
 extern char display_game_over;
+extern char display_highscore;		   // flag indiquant si la partie actuelle a débouchée sur un hghscore
 
 void init_keyboard();
 void restore_keyboard();

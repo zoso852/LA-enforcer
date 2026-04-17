@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "display.h"
 #include "fonts.h"
+#include "control.h"
 
 #define X_SCORE 261
 #define Y_SCORE 165
+#define SCORE_FILE "score.dat"
 
 
 
@@ -89,48 +92,58 @@ for (i=0;i<6;i++)
 void write_thing(int x, int y, int thing)
 {
 int i;
-char truc[4];
+char truc[7];
 
-snprintf(truc, sizeof(truc), "%03d", thing);
+snprintf(truc, sizeof(truc), "%06d", thing);
 
 
 erase_score(x,y);
-for (i=0;i<3;i++)
+for (i=0;i<6;i++)
 	{
 	switch (truc[i])
 		{
 		case '0' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,zero);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,zero);
 			break;
 		case '1' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,un);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,un);
 			break;
 		case '2' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,deux);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,deux);
 			break;
 		case '3' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,trois);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,trois);
 			break;
 		case '4' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,quatre);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,quatre);
 			break;
 		case '5' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,cinq);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,cinq);
 			break;
 		case '6' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,six);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,six);
 			break;
 		case '7' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,sept);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,sept);
 			break;
 		case '8' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,huit);
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,huit);
 			break;
 		case '9' :
-			put_hud(x+i*INTEGER_WIDTH,y<<4,neuf);			
+			put_sprite(x+i*INTEGER_WIDTH,y<<4,neuf);			
 			break;
 		}
 	}
+}
+
+void xor_cipher(char *data, int len, char key)
+{
+	int i;
+	
+    for (i = 0; i < len; i++)
+    {
+        data[i] ^= key;
+    }
 }
 
 void save_score()
@@ -138,55 +151,80 @@ void save_score()
     time_t now;
     struct tm *t;
     FILE *f;
+    char buffer[256];
+    int len;
 
     now = time(NULL);
     t = localtime(&now);
 
-    f = fopen("score.dat", "w");
+    // Construire le contenu en mémoire
+    len = snprintf(buffer, sizeof(buffer),
+        "la-enforcer-score-filev1.0\n%d\n%04d-%02d-%02d\nfalse",
+        score,
+        t->tm_year + 1900,
+        t->tm_mon + 1,
+        t->tm_mday
+    );
+
+    if (len <= 0)
+        return;
+
+    // Chiffrement XOR
+    xor_cipher(buffer, len, 0x5A);
+
+    f = fopen(SCORE_FILE, "wb"); // ⚠️ mode binaire
     if (f == NULL)
         return;
-        
-	fprintf(f, "la-enforcer-score-filev1.0\n");
-    fprintf(f, "%d\n", score);
-    fprintf(f, "%04d-%02d-%02d\n",
-            t->tm_year + 1900,
-            t->tm_mon + 1,
-            t->tm_mday);
-    fprintf(f, "false");
 
+    fwrite(buffer, 1, len, f);
     fclose(f);
 }
 
 int load_score(void)
 {
     FILE *f;
-    int saved_score;
-    char line[30];
+    char buffer[256];
+    int len;
+    int saved_score = 0;
 
-    f = fopen("SCORE.DAT", "r");
+    f = fopen(SCORE_FILE, "rb"); // mode binaire !
     if (f == NULL)
         return 0;
-        
-    if (fgets(line, sizeof(line), f) == NULL)
-    {
-        fclose(f);
-        return 0;
-    }
 
-    if (fscanf(f, "%d", &saved_score) != 1)
-    {
-        fclose(f);
-        return 0;
-    }
-
+    len = fread(buffer, 1, sizeof(buffer)-1, f);
     fclose(f);
-    
+
+    if (len <= 0)
+        return 0;
+
+    // Déchiffrement XOR
+    xor_cipher(buffer, len, 0x5A);
+
+    buffer[len] = '\0'; // sécurité string
+
+    // Parser
+    sscanf(buffer, "la-enforcer-score-filev1.0\n%d", &saved_score);
+
     return saved_score;
+}
+
+int score_file_exists(void)
+{
+    FILE *f = fopen(SCORE_FILE, "rb");
+    if (f != NULL)
+    {
+        fclose(f);
+        return 1;
+    }
+    return 0;
 }
 
 void test_score()
 {
-	if (score>load_score()) save_score();
+	if (score>load_score()) {
+		save_score();
+		display_highscore = 1;
+		}
 }
 
 

@@ -8,5 +8,7 @@ void add_score(int amount);
 void write_thing(int x,int y, int thing);
 void test_score(); //si le score actuel > le score enregistré, alors enregistrer le nouveau score
 void save_score();
+int load_score();
+int score_file_exists();
 
 #endif

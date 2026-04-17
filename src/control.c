@@ -65,7 +65,10 @@ unsigned long game_over_tick = 0;  // moment où le joueur meurt
 int game_over_delay = 48;          // nombre de ticks BIOS (~1/18.2 s par tick)
 int game_over_active = 0;          // flag indiquant que l'écran de game over est affiché
 
+
 extern char display_game_over=0;
+extern char display_highscore=0;
+
 	
 static void player_undrift();
 
@@ -345,6 +348,7 @@ void game_over()
 
         if (key_down[0x13]) {  // touche R
         	display_game_over = 0;
+        	display_highscore = 0;
             init_game();
             game_over_active = 0;  
             }
