@@ -31,6 +31,14 @@ Certains aspects plus bas niveau très spécifiques au DOS (gestion des interrup
 - Rendu de sprites compressés en Run-Length Encoding (RLE) vertical
 - Décors générés procéduralement
 
+## Ecosystème du projet
+
+Ce projet complète un système global comprenant :
+- un [jeu en C](https://github.com/julien-correard/LA-enforcer-game) (génération des scores)
+- un [client en Go](https://github.com/julien-correard/LA-enforcer-client) (envoi des scores)
+- un [serveur Spring Boot](https://github.com/julien-correard/LA-enforcer-server) (stockage des scores)
+- une [interface web en JavaScript](https://github.com/julien-correard/LA-enforcer-web) (consultation des scores)
+
 ## Ce que j'ai appris
 
 - Les bases de l'assembleur et le fonctionnement du microprocesseur dans le cadre d'un jeu DOS
